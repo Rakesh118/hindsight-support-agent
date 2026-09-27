@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Support Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="chat-container">
+        <header class="chat-header">
+            <h1>Customer Support Chat</h1>
+            <div class="customer-selector">
+                <label for="customerId">Customer ID:</label>
+                <input type="text" id="customerId" value="customer_123" placeholder="Enter Customer ID">
+            </div>
+        </header>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message agent">
+                <div class="message-bubble">
+                    Hello! How can I assist you today?
+                </div>
+                <div class="message-meta">Support Agent</div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            Agent is typing and checking past memory context...
+        </div>
+
+        <div class="chat-input-area">
+            <form class="chat-form" id="chatForm">
+                <input type="text" id="messageInput" class="chat-input" placeholder="Type your message here..." autocomplete="off" required>
+                <button type="submit" id="sendBtn" class="send-btn">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const customerIdInput = document.getElementById('customerId');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        function appendMessage(sender, text, metaText = '', recalledContext = '') {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.classList.add('message-bubble');
+            bubbleDiv.textContent = text;
+            messageDiv.appendChild(bubbleDiv);
+
+            if (recalledContext) {
+                const memoryDiv = document.createElement('div');
+                memoryDiv.classList.add('memory-tag');
+                memoryDiv.textContent = '🧠 Hindsight Memory Context Used:\n' + recalledContext;
+                messageDiv.appendChild(memoryDiv);
+            }
+
+            if (metaText) {
+                const metaDiv = document.createElement('div');
+                metaDiv.classList.add('message-meta');
+                metaDiv.textContent = metaText;
+                messageDiv.appendChild(metaDiv);
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            const customerId = customerIdInput.value.trim() || 'default_customer';
+
+            if (!message) return;
+
+            appendMessage('user', message, 'You');
+            messageInput.value = '';
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+            typingIndicator.style.display = 'block';
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message, customer_id: customerId })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    appendMessage('agent', data.reply, 'Support Agent', data.recalled_context);
+                } else {
+                    appendMessage('agent', 'Error: ' + (data.error || 'Something went wrong.'), 'System');
+                }
+            } catch (err) {
+                appendMessage('agent', 'Error connecting to the support server.', 'System');
+            } finally {
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                typingIndicator.style.display = 'none';
+                messageInput.focus();
+            }
+        });
+    </script>
+</body>
+</html>
