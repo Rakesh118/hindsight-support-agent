@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from groq import Groq
-from hindsight import HindsightClient
+from hindsight_client import Hindsight
 
 app = Flask(__name__)
 
@@ -13,7 +13,7 @@ def get_hindsight_client():
     hindsight_base_url = os.environ.get("HINDSIGHT_BASE_URL", "http://localhost:8888")
     if not hindsight_api_key:
         raise ValueError("HINDSIGHT_API_KEY environment variable is missing.")
-    return HindsightClient(base_url=hindsight_base_url, api_key=hindsight_api_key)
+    return Hindsight(base_url=hindsight_base_url, api_key=hindsight_api_key)
 
 def get_groq_client():
     groq_api_key = os.environ.get("GROQ_API_KEY")

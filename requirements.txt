@@ -1,4 +1,4 @@
 flask
 groq
-hindsight-all
+hindsight-client
 gunicorn
