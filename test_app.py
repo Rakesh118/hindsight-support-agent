@@ -39,7 +39,7 @@ class TestChatApp(unittest.TestCase):
         self.assertIn("error", data)
 
     @patch('app.Groq')
-    @patch('app.HindsightClient')
+    @patch('app.Hindsight')
     @patch.dict(os.environ, {"GROQ_API_KEY": "fake_groq_key", "HINDSIGHT_API_KEY": "fake_hindsight_key"})
     def test_chat_route_success(self, mock_hindsight_class, mock_groq_class):
         # Mock Hindsight client
